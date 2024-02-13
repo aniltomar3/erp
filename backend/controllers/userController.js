@@ -21,3 +21,8 @@ export const loginUser= async(req,res)=>{
   sendToken(user,200,res);
 }
 
+export const logout= async(req,res)=>{
+  res.cookie("token",null,{expires:new Date(Date.now()),httponly:true});
+  res.status(200).json({message:"User Logout successfully"});
+}
+
