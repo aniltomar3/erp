@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 const userSchema= new mongoose.Schema({
     name:{
         type:String,
@@ -20,8 +21,8 @@ const userSchema= new mongoose.Schema({
         type:String,
         default:'user',
     },
-    resetPasswordToken:String,
-    resetPasswordExpire:Date,
+    resetPasswordToken:String, 
+    resetPasswordExpire:Date,  
     
 },{timestamps:true})
 userSchema.pre("save",async function(next){
@@ -35,6 +36,15 @@ userSchema.pre("save",async function(next){
 
     userSchema.methods.getJwtToken= function(){
         return jwt.sign({id:this._id},process.env.JWT_SECRET,{expiresIn:process.env.JWT_EXPIRES_TIME});
+    }
+
+    userSchema.methods.getResetPasswordToken= function(){
+        // Generate token
+        const resetToken= crypto.randomBytes(20).toString('hex'); // hex, base64
+        this.resetPasswordToken= crypto.createHash("sha256").update(resetToken).digest('hex');
+        this.resetPasswordExpire= Date.now()+30*60*1000;
+        return resetToken;
+        
     }
 
 export default mongoose.model("erpUser",userSchema);
